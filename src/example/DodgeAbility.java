@@ -2,6 +2,7 @@ package example;
 
 import arc.graphics.g2d.Draw;
 import arc.graphics.g2d.TextureRegion;
+import arc.math.Mathf;
 import arc.math.geom.Vec2;
 import arc.util.Time;
 import mindustry.content.StatusEffects;
@@ -9,19 +10,21 @@ import mindustry.entities.Effect;
 import mindustry.entities.abilities.Ability;
 import mindustry.gen.Groups;
 import mindustry.gen.Unit;
+import mindustry.world.meta.Stat;
+import mindustry.world.meta.Stats;
 
 public class DodgeAbility extends Ability {
     public float cooldown = 600f; // Перезарядка (10 сек)
-    public float range = 120f;    // Радиус реагирования (в пикселях)
-    public float dodgeForce = 20f; // Сила рывка
-    public float dashDuration = 15f; // Длительность шлейфа и неуязвимости (в тиках)
+    public float range = 100f;    // Радиус реагирования (чуть уменьшил)
+    public float dodgeForce = 12f; // Сила рывка стала меньше, чтобы летел недалеко
+    public float dashDuration = 10f; // Время неуязвимости и следа тоже короче
 
     protected float timer = cooldown; 
     protected float dashTimer = 0f;
     protected float trailTick = 0f;
 
-    // Визуальный эффект полупрозрачного следа
-    public static final Effect dodgeTrail = new Effect(30f, e -> {
+    // Эффект следа
+    public static final Effect dodgeTrail = new Effect(20f, e -> {
         Draw.alpha(e.fout() * 0.5f); 
         if (e.data instanceof TextureRegion region) {
             Draw.rect(region, e.x, e.y, e.rotation - 90f);
@@ -32,7 +35,6 @@ public class DodgeAbility extends Ability {
     public void update(Unit unit) {
         timer += Time.delta;
 
-        // 1. Поиск летящих в нас пуль
         if (timer >= cooldown) {
             boolean[] danger = {false};
             Groups.bullet.intersect(unit.x - range, unit.y - range, range * 2, range * 2, b -> {
@@ -41,12 +43,14 @@ public class DodgeAbility extends Ability {
                 }
             });
 
-            // 2. Активация уворота
             if (danger[0]) {
-                Vec2 dodgeVec = new Vec2().trns(unit.rotation - 180f, dodgeForce);
+                // Mathf.chance(0.5) дает 50% шанс. 
+                // Юнит случайно выбирает угол: +90 (влево) или -90 (вправо) относительно своего взгляда
+                float angleOffset = Mathf.chance(0.5) ? 90f : -90f;
+                
+                Vec2 dodgeVec = new Vec2().trns(unit.rotation + angleOffset, dodgeForce);
                 unit.vel.add(dodgeVec);
                 
-                // ВЫДАЧА НЕУЯЗВИМОСТИ на время рывка (ванильный статус-эффект)
                 unit.apply(StatusEffects.invincible, dashDuration);
                 
                 dashTimer = dashDuration; 
@@ -54,14 +58,25 @@ public class DodgeAbility extends Ability {
             }
         }
 
-        // 3. Отрисовка шлейфа (afterimage)
+        // Шлейф
         if (dashTimer > 0) {
             trailTick += Time.delta;
-            if (trailTick >= 2f) { // Частота появления фантомов
+            if (trailTick >= 2f) { 
                 dodgeTrail.at(unit.x, unit.y, unit.rotation, unit.type.region);
                 trailTick = 0f;
             }
             dashTimer -= Time.delta;
         }
+    }
+
+    // --- ИНТЕГРАЦИЯ В МЕНЮ ИНФОРМАЦИИ О ЮНИТЕ ---
+    @Override
+    public void addStats(Stats stats) {
+        // Stat.abilities указывает игре поместить текст в категорию "Способности"
+        // Теги [lightgray] и [] используются движком для покраски текста прямо в интерфейсе
+        stats.add(Stat.abilities, "Уклонение (рывок в сторону)\n" + 
+            "[lightgray]Перезарядка:[] " + (cooldown / 60f) + " сек\n" + 
+            "[lightgray]Дистанция:[] ~4 блока"
+        );
     }
 }
