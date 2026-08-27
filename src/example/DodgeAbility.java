@@ -10,14 +10,12 @@ import mindustry.entities.Effect;
 import mindustry.entities.abilities.Ability;
 import mindustry.gen.Groups;
 import mindustry.gen.Unit;
-import mindustry.world.meta.Stat;
-import mindustry.world.meta.Stats;
 
 public class DodgeAbility extends Ability {
     public float cooldown = 600f; // Перезарядка (10 сек)
-    public float range = 100f;    // Радиус реагирования (чуть уменьшил)
-    public float dodgeForce = 12f; // Сила рывка стала меньше, чтобы летел недалеко
-    public float dashDuration = 10f; // Время неуязвимости и следа тоже короче
+    public float range = 100f;    // Радиус реагирования 
+    public float dodgeForce = 12f; // Сила рывка
+    public float dashDuration = 10f; // Время неуязвимости и следа 
 
     protected float timer = cooldown; 
     protected float dashTimer = 0f;
@@ -44,8 +42,7 @@ public class DodgeAbility extends Ability {
             });
 
             if (danger[0]) {
-                // Mathf.chance(0.5) дает 50% шанс. 
-                // Юнит случайно выбирает угол: +90 (влево) или -90 (вправо) относительно своего взгляда
+                // Юнит случайно выбирает угол: +90 (влево) или -90 (вправо)
                 float angleOffset = Mathf.chance(0.5) ? 90f : -90f;
                 
                 Vec2 dodgeVec = new Vec2().trns(unit.rotation + angleOffset, dodgeForce);
@@ -71,12 +68,7 @@ public class DodgeAbility extends Ability {
 
     // --- ИНТЕГРАЦИЯ В МЕНЮ ИНФОРМАЦИИ О ЮНИТЕ ---
     @Override
-    public void addStats(Stats stats) {
-        // Stat.abilities указывает игре поместить текст в категорию "Способности"
-        // Теги [lightgray] и [] используются движком для покраски текста прямо в интерфейсе
-        stats.add(Stat.abilities, "Уклонение (рывок в сторону)\n" + 
-            "[lightgray]Перезарядка:[] " + (cooldown / 60f) + " сек\n" + 
-            "[lightgray]Дистанция:[] ~4 блока"
-        );
+    public String localized() {
+        return "Уклонение (рывок в сторону)\n[lightgray]Перезарядка:[] " + (cooldown / 60f) + " сек\n[lightgray]Дистанция:[] ~4 блока";
     }
 }
