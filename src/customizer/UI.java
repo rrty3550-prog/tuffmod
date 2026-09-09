@@ -6,6 +6,7 @@ import arc.scene.ui.layout.Table;
 import arc.struct.Seq;
 import mindustry.Vars;
 import mindustry.content.UnitTypes;
+import mindustry.gen.Tex;
 import mindustry.gen.Unit;
 import mindustry.type.UnitType;
 import mindustry.type.Weapon;
@@ -106,7 +107,7 @@ public class UI {
             for (int i = 0; i < weapons.size; i++) {
                 int idx = i;
                 WConfig wc = weapons.get(i);
-                Table wt = new Table(Styles.flatBox).pad(6f);
+                Table wt = new Table(Tex.flatBox).pad(6f);
                 wt.add("[yellow]" + (idx + 1) + ". " + (wc.weapon.name == null || wc.weapon.name.isEmpty() ? "Пушка" : wc.weapon.name) + "[]").row();
 
                 wt.add("Скорострельность: x" + (int)(wc.reloadMult * 10) / 10f);
@@ -136,7 +137,7 @@ public class UI {
 
         }).grow().row();
 
-        cont.button("Применить", Styles.defaultt, () -> {
+        cont.button("Применить", Styles.flatt, () -> {
             apply();
             dialog.hide();
         }).size(180f, 45f).pad(8f).row();
@@ -187,7 +188,6 @@ public class UI {
             constructor = flying ? UnitTypes.flare.constructor : 
                          (legs ? UnitTypes.toxopid.constructor : body.constructor);
             
-            region = body.region;
             health = body.health * hpMult;
             speed = body.speed * spdMult;
             flying = UI.flying;
