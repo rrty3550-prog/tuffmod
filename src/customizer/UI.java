@@ -55,7 +55,7 @@ public class UI {
         cont.pane(t -> {
             t.defaults().pad(4f).left();
 
-            // 1. Корпус и Тип
+            // 1. Корпус и Мобильность
             t.add("[accent]1. Корпус и Мобильность[]").row();
             t.add("Корпус: ");
             t.button(body.localizedName, () -> pickUnit("Корпус", u -> { body = u; showMain(); })).width(200f).row();
@@ -89,13 +89,13 @@ public class UI {
 
             // 3. Статы
             t.add("[accent]3. Характеристики[]").row();
-            t.add("ХП (x" + String.format("%.1f", hpMult) + "):");
+            t.add("ХП (x" + (int)(hpMult * 10) / 10f + "):");
             Slider sHp = new Slider(0.1f, 10f, 0.1f, false);
             sHp.setValue(hpMult);
             sHp.changed(() -> hpMult = sHp.getValue());
             t.add(sHp).width(180f).row();
 
-            t.add("Скорость (x" + String.format("%.1f", spdMult) + "):");
+            t.add("Скорость (x" + (int)(spdMult * 10) / 10f + "):");
             Slider sSpd = new Slider(0.1f, 5f, 0.1f, false);
             sSpd.setValue(spdMult);
             sSpd.changed(() -> spdMult = sSpd.getValue());
@@ -106,14 +106,16 @@ public class UI {
             for (int i = 0; i < weapons.size; i++) {
                 int idx = i;
                 WConfig wc = weapons.get(i);
-                Table wt = new Table(Styles.black3).pad(6f);
-                wt.add("[yellow]" + (idx + 1) + ". " + (wc.weapon.name.isEmpty() ? "Пушка" : wc.weapon.name) + "[]").row();wt.add("Скорострельность: x" + String.format("%.1f", wc.reloadMult));
+                Table wt = new Table(Styles.flatBox).pad(6f);
+                wt.add("[yellow]" + (idx + 1) + ". " + (wc.weapon.name == null || wc.weapon.name.isEmpty() ? "Пушка" : wc.weapon.name) + "[]").row();
+
+                wt.add("Скорострельность: x" + (int)(wc.reloadMult * 10) / 10f);
                 Slider sr = new Slider(0.1f, 5f, 0.1f, false);
                 sr.setValue(wc.reloadMult);
                 sr.changed(() -> wc.reloadMult = sr.getValue());
                 wt.add(sr).row();
 
-                wt.add("Урон: x" + String.format("%.1f", wc.damageMult));
+                wt.add("Урон: x" + (int)(wc.damageMult * 10) / 10f);
                 Slider sd = new Slider(0.1f, 5f, 0.1f, false);
                 sd.setValue(wc.damageMult);
                 sd.changed(() -> wc.damageMult = sd.getValue());
@@ -134,7 +136,7 @@ public class UI {
 
         }).grow().row();
 
-        cont.button("Применить", Styles.flatTogglet, () -> {
+        cont.button("Применить", Styles.defaultt, () -> {
             apply();
             dialog.hide();
         }).size(180f, 45f).pad(8f).row();
@@ -166,7 +168,7 @@ public class UI {
                 if (type.weapons.size == 0) continue;
                 t.add("[accent]" + type.localizedName + "[]").left().row();
                 for (Weapon w : type.weapons) {
-                    t.button(" - " + (w.name.isEmpty() ? "Пушка" : w.name), () -> {
+                    t.button(" - " + (w.name == null || w.name.isEmpty() ? "Пушка" : w.name), () -> {
                         cons.get(new WConfig(w));
                         d.hide();
                     }).width(220f).left().row();
@@ -185,7 +187,6 @@ public class UI {
             constructor = flying ? UnitTypes.flare.constructor : 
                          (legs ? UnitTypes.toxopid.constructor : body.constructor);
             
-            sprite = body.sprite;
             region = body.region;
             health = body.health * hpMult;
             speed = body.speed * spdMult;
@@ -206,12 +207,8 @@ public class UI {
 
             weapons.clear();
             for (WConfig wc : UI.weapons) {
-                Weapon w = wc.weapon.copy();
+                Weapon w = wc.weapon;
                 w.reload = Math.max(1f, wc.weapon.reload / wc.reloadMult);
-                if (w.bullet != null) {
-                    w.bullet = w.bullet.copy();
-                    w.bullet.damage *= wc.damageMult;
-                }
                 weapons.add(w);
             }
         }};
@@ -220,7 +217,9 @@ public class UI {
 
         Unit newUnit = custom.create(Vars.player.team());
         newUnit.set(cur.x, cur.y);
-        newUnit.add();Vars.player.unit(newUnit);
+        newUnit.add();
+
+        Vars.player.unit(newUnit);
         cur.destroy();
     }
 }
