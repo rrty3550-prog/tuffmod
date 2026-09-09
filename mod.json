@@ -1,0 +1,10 @@
+{
+  "name": "customizer",
+  "displayName": "Unit Customizer",
+  "author": "User",
+  "main": "customizer.Main",
+  "description": "Мод для кастомизации корпуса, ног, оружия и характеристик юнита.",
+  "version": "1.0",
+  "minGameVersion": "154",
+  "java": true
+}
